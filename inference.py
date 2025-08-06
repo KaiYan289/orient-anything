@@ -23,6 +23,24 @@ def get_3angle(image, dino, val_preprocess, device):
     angles[3]  = confidence
     return angles
 
+def get_3angle_dataloader(image, dino):
+    
+    # image = Image.open(image_path).convert('RGB')
+    image_inputs = image
+    with torch.no_grad():
+        dino_pred = dino(image_inputs)
+
+    gaus_ax_pred   = torch.argmax(dino_pred[:, 0:360], dim=-1)
+    gaus_pl_pred   = torch.argmax(dino_pred[:, 360:360+180], dim=-1)
+    gaus_ro_pred   = torch.argmax(dino_pred[:, 360+180:360+180+180], dim=-1)
+    confidence     = F.softmax(dino_pred[:, -2:], dim=-1)[0][0]
+    angles = torch.zeros(4)
+    angles[0]  = gaus_ax_pred
+    angles[1]  = gaus_pl_pred - 90
+    angles[2]  = gaus_ro_pred - 90
+    angles[3]  = confidence
+    return angles
+
 def get_3angle_infer_aug(origin_img, rm_bkg_img, dino, val_preprocess, device):
     
     # image = Image.open(image_path).convert('RGB')
